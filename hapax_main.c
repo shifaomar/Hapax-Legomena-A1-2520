@@ -4,15 +4,14 @@
 
 #include "word_tally.h"
 
-
 /** function to be passed in to llFree to delete allocated keys */
 void deleteKey(LLNode *node, void *userdata)
 {
-	if (node->key != NULL) {
+	if (node->key != NULL)
+	{
 		free(node->key);
 	}
 }
-
 
 /** Delete the contents of all of the word lists
  *
@@ -20,23 +19,22 @@ void deleteKey(LLNode *node, void *userdata)
  * the keys within the nodes have been allocated
  * using malloc() and need to be freed.
  */
-void
-deleteWordLists(LLNode **wordListHeads, int maxLen)
+void deleteWordLists(LLNode **wordListHeads, int maxLen)
 {
 	int i;
 
-	for (i = 0; i < maxLen; i++) {
-		if (wordListHeads[i] != NULL) {
+	for (i = 0; i < maxLen; i++)
+	{
+		if (wordListHeads[i] != NULL)
+		{
 			llFree(wordListHeads[i], deleteKey, NULL);
 			wordListHeads[i] = NULL;
 		}
 	}
 }
 
-
 /** print out all of the data in a word list */
-int
-printData(char *filename, LLNode *wordListHeads[], int maxLen)
+int printData(char *filename, LLNode *wordListHeads[], int maxLen)
 {
 	LLNode *node;
 	int i;
@@ -47,13 +45,16 @@ printData(char *filename, LLNode *wordListHeads[], int maxLen)
 	 * For each length, if the list is not null, print out
 	 * the values in the list
 	 */
-	for (i = 0; i <= maxLen; i++) {
+	for (i = 0; i <= maxLen; i++)
+	{
 		node = wordListHeads[i];
-		if (node != NULL) {
+		if (node != NULL)
+		{
 			printf("Length %d:\n", i);
-			while (node != NULL) {
+			while (node != NULL)
+			{
 				printf("    '%s' %d\n", node->key, node->value);
-                node = node->next;
+				node = node->next;
 			}
 		}
 	}
@@ -61,18 +62,31 @@ printData(char *filename, LLNode *wordListHeads[], int maxLen)
 }
 
 /** TODO: print out only the hapax legomena in a word list */
-int
-printHapax(char *filename, LLNode *wordListHeads[],
-		int maxLen, int hapaxLength)
+int printHapax(char *filename, LLNode *wordListHeads[],
+			   int maxLen, int hapaxLength)
 {
-	// Add your code here
+	
+	printf("Hapax legomena from file %s\n", filename);
+
+	for (int i = 1; i <= maxLen; i++) // Start from length 1, as length 0 is not used
+	{
+		LLNode *node = wordListHeads[i];
+
+		while (node != NULL)
+		{
+			if (node->value == 1)
+			{
+				printf(" '%s'\n", node->key);
+			}
+			node = node->next;
+		}
+	}
 
 	return 1;
 }
 
 /* print out the command line help */
-void
-usage()
+void usage()
 {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Find and print the hapax legomena in one or more files.\n");
@@ -99,36 +113,68 @@ usage()
 	exit(1);
 }
 
-
 /**
  * Program mainline
  */
 
 // define the maximum length of word we will look for, and by extension,
 // the number of entries that must be in the array of word lists
-#define	MAX_WORD_LEN	24
+#define MAX_WORD_LEN 24
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	int i, shouldPrintData = 0, didProcessing = 0, printHapaxLength = -1;
 
 	/** TODO: allocate an array of list heads of the required size */
+	LLNode **wordListHeads = (LLNode **)malloc((MAX_WORD_LEN + 1) * sizeof(LLNode *));
+	for (i = 0; i <= MAX_WORD_LEN; i++)
+	{
+		wordListHeads[i] = NULL;
+	}
 
-	for (i = 1; i < argc; i++) {
-		if (argv[i][0] == '-') {
+	for (i = 1; i < argc; i++)
+	{
+		if (argv[i][0] == '-')
+		{
 			// TODO: Put your code to process the command line options here
+			if (argv[i][1] == 'd')
+			{
+				shouldPrintData = 1;
+			}
+			else if (argv[i][1] == 'h')
+			{
+				usage();
+				return 0;
+			}
+			else if (argv[i][1] == 'l')
+			{
+				if (i == argc-1)
+				{
+					//i++;
+					//printHapaxLength = atoi(argv[i]);
+					return -1;
+				}
+				else
+				{
+					//printHapaxLength = 0;
+					++i;
+					printHapaxLength = atoi(argv[i]);
+					printf("HapaxLength: %d\n", printHapaxLength);
 
+				}
+			}
+		}
+		else
+		{
 
-		} else {
-
-//			// Once you have set up your array of word lists, you
-//			// should be able to pass them into this function
-//			if (tallyWordsInFile(argv[i], wordListHeads, MAX_WORD_LEN) == 0) {
-//				fprintf(stderr, "Error: Processing '%s' failed -- exitting\n",
-//						argv[i]);
-//				return 1;
-//			}
+			//			// Once you have set up your array of word lists, you
+			//			// should be able to pass them into this function
+			if (tallyWordsInFile(argv[i], wordListHeads, MAX_WORD_LEN) == 0)
+			{
+				fprintf(stderr, "Error: Processing '%s' failed -- exitting\n",
+						argv[i]);
+				return 1;
+			}
 
 			didProcessing = 1;
 
@@ -138,28 +184,32 @@ main(int argc, char **argv)
 			 * conditionally print out all the words loaded, based
 			 * on the command line option
 			 */
-			if (shouldPrintData) {
-//				// this should also work once you have allocated the
-//				// array of lists properly
-//				printData(argv[i], wordListHeads, MAX_WORD_LEN);
+			if (shouldPrintData)
+			{
+				//				// this should also work once you have allocated the
+				//				// array of lists properly
+				printData(argv[i], wordListHeads, MAX_WORD_LEN);
 			}
 
 			/** print out all the hapax legomena that we have found */
-//			printHapax(argv[i], wordListHeads, MAX_WORD_LEN);
+			printHapax(argv[i], wordListHeads, MAX_WORD_LEN, printHapaxLength);
 
 			// TODO: clean up any memory that we have allocated in this loop
+			deleteWordLists(wordListHeads, MAX_WORD_LEN);
 		}
 	}
 
-	if ( ! didProcessing ) {
+	if (!didProcessing)
+	{
 		fprintf(stderr, "No data processed -- provide the name of"
-				" a file on the command line\n");
+						" a file on the command line\n");
 		usage();
 		return 1;
 	}
 
 	// TODO: clean up any remaining memory that we have allocated
+	deleteWordLists(wordListHeads, MAX_WORD_LEN);
+	free(wordListHeads);
 
 	return 0;
 }
-
